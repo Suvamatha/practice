@@ -149,57 +149,67 @@ class _PropertyCard extends StatelessWidget {
         border: Border.all(color: border),
       ),
       clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
+        clipBehavior: Clip.none,
         children: [
-          Image.network(imageUrl, height: 150, width: double.infinity, fit: BoxFit.cover),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  price,
-                  style: GoogleFonts.fraunces(
-                    fontSize: 19,
-                    fontWeight: FontWeight.w500,
-                    color: ink,
+         Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Image.network(imageUrl, height: 150, width: double.infinity, fit: BoxFit.cover),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    price,
+                    style: GoogleFonts.fraunces(
+                      fontSize: 19,
+                      fontWeight: FontWeight.w500,
+                      color: ink,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    _spec(Icons.bed_outlined, '$beds bed'),
-                    const SizedBox(width: 12),
-                    _spec(Icons.bathtub_outlined, '$baths bath'),
-                    const SizedBox(width: 12),
-                    _spec(Icons.straighten_outlined, '$sqft sqft'),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Wrap(
-                  spacing: 6,
-                  children: tags
-                      .map((t) => Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: primaryTint,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              t,
-                              style: GoogleFonts.inter(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500,
-                                color: primaryBlue,
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      _spec(Icons.bed_outlined, '$beds bed'),
+                      const SizedBox(width: 12),
+                      _spec(Icons.bathtub_outlined, '$baths bath'),
+                      const SizedBox(width: 12),
+                      _spec(Icons.straighten_outlined, '$sqft sqft'),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 6,
+                    children: tags
+                        .map((t) => Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: primaryTint,
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                            ),
-                          ))
-                      .toList(),
-                ),
-              ],
+                              child: Text(
+                                t,
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                  color: primaryBlue,
+                                ),
+                              ),
+                            ))
+                        .toList(),
+                  ),
+                ],
+              ),
             ),
-          ),
+          ],
+        ),
+        const Positioned(
+            top: 150 - 24, // photo height minus half the badge size
+            right: 16,
+            child: _MatchRingBadge(percent: 98),
+        )
         ],
       ),
     );
@@ -215,4 +225,85 @@ class _PropertyCard extends StatelessWidget {
       ],
     );
   }
+}
+
+class _MatchRingBadge extends StatelessWidget {
+  const _MatchRingBadge({required this.percent});
+
+  final int percent;
+  static const double size = 48;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+             color: Color(0x1A12172B), 
+             blurRadius: 8, 
+             offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: CustomPaint(
+        painter: _RingPainter(percent: percent),
+        child: Center(
+          child: Text(
+            '$percent%',
+            style: GoogleFonts.inter(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: primaryBlue,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RingPainter extends CustomPainter {
+  _RingPainter({required this.percent});
+  final int percent;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final radius = (size.shortestSide - 3.5) / 2;
+
+    canvas.drawCircle(center, radius + 1.75, Paint()..color = Colors.white);
+
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..color = border
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3.5,
+    );
+
+    final sweep = 2 * 3.14159265 * (percent / 100);
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      -3.14159265 / 2,
+      sweep,
+      false,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3.5
+        ..strokeCap = StrokeCap.round
+        ..shader = SweepGradient(
+          startAngle: 0,
+          endAngle: sweep == 0 ? 0.001 : sweep,
+          colors: const [primaryBlue, accentWarm],
+          transform: const GradientRotation(-3.14159265 / 2),
+        ).createShader(Rect.fromCircle(center: center, radius: radius)),
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _RingPainter oldDelegate) => oldDelegate.percent != percent;
 }
