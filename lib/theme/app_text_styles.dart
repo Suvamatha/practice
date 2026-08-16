@@ -6,7 +6,7 @@ import 'app_colors.dart';
 class AppText {
   AppText._();
 
-  static TextStyle heading({double size = 22, Color color = ink}) =>
+  static TextStyle heading({double size = 22, Color color = ink, double? height}) =>
       GoogleFonts.fraunces(fontSize: size, fontWeight: FontWeight.w500, color: color);
 
   static TextStyle price({double size = 19, Color color = ink}) =>
